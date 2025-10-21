@@ -26,70 +26,36 @@ app.get("/", (req, res) => {
 
 // ---- JSON-RPC router (the client POSTs initialize / tools/list / tools/call here)
 app.post("/", (req, res) => {
-  const { id, method, params } = req.body || {};
-  const auth = req.headers.authorization || "";
+  const { jsonrpc, id, method, params } = req.body || {};
+  console.log("[MCP] initialize body:", req.body);
 
-  if (process.env.MCP_SHARED_SECRET) {
-    if (auth !== `Bearer ${process.env.MCP_SHARED_SECRET}`) {
-      return res.json({ jsonrpc: "2.0", id, error: { code: 401, message: "Unauthorized" } });
-    }
-  }
-
-  const ok = (result) => res.json({ jsonrpc: "2.0", id, result });
-  const fail = (code, message) => res.json({ jsonrpc: "2.0", id, error: { code, message } });
-
-  switch (method) {
-    case "initialize":
-      return ok({
+  if (method === "initialize") {
+    return res.json({
+      jsonrpc: "2.0",
+      id,
+      result: {
         serverInfo: { name: "miownai-mcp", version: "0.0.1" },
         capabilities: { tools: {} }
-      });
-
-    case "tools/list":
-      return ok({
-        tools: [
-          {
-            name: "gmail.create_draft",
-            description: "Create a Gmail draft",
-            input_schema: {
-              type: "object",
-              properties: {
-                to: { type: "string" },
-                subject: { type: "string" },
-                body: { type: "string" }
-              },
-              required: ["to", "subject", "body"]
-            }
-          }
-        ]
-      });
-
-    case "tools/call": {
-      const { name, arguments: args } = params || {};
-      if (name !== "gmail.create_draft") {
-        return fail(404, `Unknown tool: ${name}`);
       }
-      // stub “execution”
-      return ok({
-        content: [
-          {
-            type: "json",
-            data: {
-              ok: true,
-              draftId: "dr_" + Math.random().toString(36).slice(2, 10),
-              to: args?.to,
-              subject: args?.subject,
-              body: args?.body
-            }
-          }
-        ]
-      });
-    }
-
-    default:
-      return fail(-32601, `Unsupported method: ${method}`);
+    });
   }
+
+  if (method === "tools/list") {
+    return res.json({
+      jsonrpc: "2.0",
+      id,
+      result: { tools }
+    });
+  }
+
+  if (method === "tools/call") {
+    // handle tool invocation
+  }
+
+  console.log("[MCP] unknown method:", method);
+  return res.status(400).json({ error: "Unsupported MCP message type" });
 });
+
 
 // health
 app.get("/health", (_req, res) => res.json({ ok: true, version: "0.0.1" }));
