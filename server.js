@@ -43,13 +43,13 @@ app.post("/api/chat", async (req, res) => {
           server_url: process.env.MCP_SERVER_URL, // e.g. https://miownai-mcp-demo.onrender.com/
           require_approval: "never",
           headers: {
-            // include ONLY if your MCP server requires it
-            ...(process.env.MCP_SHARED_SECRET ? { Authorization: `Bearer ${process.env.MCP_SHARED_SECRET}` } : {})
+            Authorization: `Bearer ${process.env.MCP_SHARED_SECRET}`
           },
           allowed_tools: ["gmail.create_draft"]
         }
       ]
     };
+
 
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
