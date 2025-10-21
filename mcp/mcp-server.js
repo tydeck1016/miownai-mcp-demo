@@ -29,15 +29,18 @@ app.post("/", (req, res) => {
   console.log("[MCP]", method, "body:", req.body);
 
   if (method === "initialize") {
+    console.log("[MCP] replying to initialize");
     return res.json({
       jsonrpc: "2.0",
       id,
       result: {
         serverInfo: { name: "miownai-mcp", version: "0.0.1" },
-        capabilities: {} // <-- instead of { tools: {} }
+        // tell OpenAI we actually support tools
+        capabilities: { tools: { list: true, call: true } }
       }
     });
   }
+
 
 
   if (method === "tools/list") {
