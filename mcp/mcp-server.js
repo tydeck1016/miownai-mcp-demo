@@ -26,20 +26,23 @@ app.get("/tools/list", (req, res) => {
 });
 
 // Handle tool calls (fake execution for now)
-app.post("/tools/call", async (req, res) => {
-  const { name, arguments: args } = req.body;
-
+app.post("/tools/call", (req, res) => {
+  const { name, arguments: args } = req.body || {};
   if (name === "gmail.create_draft") {
-    // Fake a success message
     return res.json({
-        "content": [
-            { "type": "json", "data": { "ok": true, "draftId": "dr_123", "to": "...", "subject": "..." } }
-        ]
+      content: [
+        { type: "json", data: {
+            ok: true,
+            draftId: "dr_" + Math.random().toString(36).slice(2, 8),
+            to: args?.to,
+            subject: args?.subject
+        } }
+      ]
     });
   }
-
-  res.status(404).json({ error: "Tool not found" });
+  return res.status(404).json({ error: "Tool not found" });
 });
+
 
 // at the bottom of mcp-server.js
 const PORT = process.env.PORT || 4000;
