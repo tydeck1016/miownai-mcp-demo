@@ -34,10 +34,11 @@ app.post("/", (req, res) => {
       id,
       result: {
         serverInfo: { name: "miownai-mcp", version: "0.0.1" },
-        capabilities: { tools: {} }
+        capabilities: {} // <-- instead of { tools: {} }
       }
     });
   }
+
 
   if (method === "tools/list") {
     console.log("[MCP] tools/list requested");
