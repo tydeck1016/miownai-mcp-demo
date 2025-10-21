@@ -1,0 +1,17 @@
+{
+  "name": "miownaidemo2",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "start": "NODE_ENV=production node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "js-yaml": "^4.1.0",
+    "openai": "^4.57.0"
+  }
+}

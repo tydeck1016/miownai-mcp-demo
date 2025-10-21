@@ -1,0 +1,20 @@
+id: gmail
+name: Gmail
+description: Tools for interacting with Gmail
+
+tools:
+  - name: gmail.create_draft
+    description: Create a new Gmail draft with recipient, subject, and body text
+    input_schema:
+      type: object
+      properties:
+        to:
+          type: string
+          description: Email address of the recipient
+        subject:
+          type: string
+          description: Subject line for the email
+        body:
+          type: string
+          description: Content of the email body
+      required: [to, subject, body]

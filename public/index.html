@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MiOwnAI — POC</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:#f6f8fa; }
+    .card { background:white; padding:1rem; border-radius:8px; box-shadow:0 6px 24px rgba(20,30,50,0.08); width:720px; max-width:96vw; }
+    header { text-align:center; padding:0.5rem 0; }
+    #chat { height:400px; overflow:auto; border:1px solid #eee; padding:1rem; border-radius:6px; background:#fafafa; }
+    .msg { margin:0.6rem 0; display:flex; gap:0.6rem; }
+    .msg.user { justify-content:flex-end; }
+    .bubble { max-width:78%; padding:0.6rem 0.8rem; border-radius:10px; background:#fff; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
+    .bubble.assistant { background:#eef7ff; }
+    .controls { display:flex; gap:0.5rem; margin-top:0.75rem; }
+    input[type=text] { flex:1; padding:0.6rem 0.8rem; border-radius:6px; border:1px solid #ddd; }
+    button { padding:0.6rem 0.9rem; border-radius:6px; border:0; background:#0366d6; color:white; cursor:pointer; }
+    small.status { display:block; margin-top:0.5rem; color:#666; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <header>
+      <h2>MiOwnAI — Basic Chat</h2>
+      <small>Powered by OpenAI Responses API</small>
+    </header>
+
+    <div id="chat" aria-live="polite"></div>
+
+    <div class="controls">
+      <input id="input" type="text" placeholder="Type a message..." />
+      <button id="send">Send</button>
+    </div>
+    <small class="status" id="status">Not connected to backend</small>
+  </div>
+
+  <script>
+    const chatEl = document.getElementById('chat');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const statusEl = document.getElementById('status');
+
+    function appendMessage(text, role='assistant') {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg ' + (role === 'user' ? 'user' : 'assistant');
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (role === 'user' ? 'user' : 'assistant');
+      bubble.textContent = text;
+      wrap.appendChild(bubble);
+      chatEl.appendChild(wrap);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function sendMessage(text) {
+      appendMessage(text, 'user');
+      const loading = document.createElement('div');
+      loading.className = 'msg';
+      loading.innerHTML = '<div class="bubble assistant">Thinking…</div>';
+      chatEl.appendChild(loading);
+      chatEl.scrollTop = chatEl.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ message: text })
+        });
+        if (!res.ok) throw new Error('Server error: ' + res.status);
+        const payload = await res.json();
+
+        chatEl.removeChild(loading);
+        appendMessage(payload.reply || '(no reply)', 'assistant');
+        statusEl.textContent = 'Idle';
+      } catch (err) {
+        console.error(err);
+        chatEl.removeChild(loading);
+        appendMessage('Error: ' + err.message, 'assistant');
+        statusEl.textContent = 'Error';
+      }
+    }
+
+    sendBtn.addEventListener('click', () => {
+      const v = input.value.trim();
+      if (!v) return;
+      input.value = '';
+      sendMessage(v);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendBtn.click();
+    });
+
+    // health check
+    (async () => {
+      try {
+        const r = await fetch('/api/health');
+        if (r.ok) {
+          statusEl.textContent = 'Backend OK';
+          appendMessage("Hey! I'm ready. Ask me anything.", 'assistant');
+        } else {
+          statusEl.textContent = 'Backend unreachable';
+        }
+      } catch (e) {
+        statusEl.textContent = 'Backend unreachable';
+        console.error('Health check failed', e);
+      }
+    })();
+  </script>
+</body>
+</html>
