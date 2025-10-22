@@ -60,7 +60,7 @@ app.post("/", (req, res) => {
           {
             name: "gmail.create_draft",
             description: "Create a Gmail draft email.",
-            inputSchema: {
+            input_schema: {
               type: "object",
               properties: {
                 to: { type: "string", description: "Recipient email address" },
@@ -101,6 +101,13 @@ app.post("/", (req, res) => {
       error: { code: -32601, message: "Tool not found" }
     });
   }
+
+  if (method === "notifications/initialized") {
+    console.log("[MCP] notifications/initialized");
+    // JSON-RPC notification: no id, no response body
+    return res.status(204).end();
+  }
+
 
   console.log("[MCP] unknown method:", method);
   return res.status(400).json({ error: "Unsupported MCP message type" });
