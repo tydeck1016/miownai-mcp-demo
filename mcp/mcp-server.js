@@ -30,24 +30,18 @@ app.post("/", (req, res) => {
 
   if (method === "initialize") {
     console.log("[MCP] replying to initialize");
-
     return res.json({
       jsonrpc: "2.0",
       id,
       result: {
         serverInfo: { name: "miownai-mcp", version: "0.0.1" },
-        capabilities: {
-          tools: {
-            list: true,
-            call: true
-          }
-        },
+        // per spec
+        capabilities: { tools: { listChanged: false } },
+        // optional but fine to echo the client’s version
         protocolVersion: "2025-03-26"
       }
     });
   }
-
-
 
 
   if (method === "tools/list") {
@@ -60,7 +54,7 @@ app.post("/", (req, res) => {
           {
             name: "gmail.create_draft",
             description: "Create a Gmail draft email.",
-            input_schema: {
+            inputSchema: {
               type: "object",
               properties: {
                 to: { type: "string", description: "Recipient email address" },
@@ -74,6 +68,7 @@ app.post("/", (req, res) => {
       }
     });
   }
+
 
   if (method === "tools/call") {
     console.log("[MCP] tools/call:", req.body);
